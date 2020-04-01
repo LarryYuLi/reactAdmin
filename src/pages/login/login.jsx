@@ -131,7 +131,7 @@ export default class Login extends Component {
                 </header>
                 <section className="login-content">
                     <h2>Login</h2>
-                    <NormalLoginForm props={this.props} />
+                    <NormalLoginForm {...this.props} />
                 </section>
             </div>
         )

@@ -6,6 +6,7 @@ module.exports = override(
         libraryDirectory: 'es',
         style: true,
     }),
+    // change less from code by less-loader
     // 使用less-loader对源码重的less变量进行重新指定
     addLessLoader({
         javascriptEnabled: true,
