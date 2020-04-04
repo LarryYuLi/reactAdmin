@@ -61,7 +61,7 @@ class LeftNav extends Component {
             } else {
                 // current route path
                 const path = this.props.location.pathname
-                const exist = item.children.find(cItem => cItem.key === path)
+                const exist = item.children.find(cItem => path.indexOf(cItem.key) === 0)
                 if (exist) {
                     this.openKey = item.key
                 }
@@ -93,7 +93,10 @@ class LeftNav extends Component {
     render() {
         
         // current route path
-        const path = this.props.location.pathname
+        let path = this.props.location.pathname
+        if (path.indexOf('/product') === 0) {
+            path = '/product'
+        }
         return (
             <div className="left-nav">
                 <Link to='/' className="left-nav-header">
