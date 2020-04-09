@@ -6,6 +6,7 @@ import LinkButton from '../../components/link-button'
 import { reqCategories, reqUpdateCategory, reqAddCategory } from '../../api'
 import AddForm from './add-form'
 import UpdateForm from './update-form'
+import { PAGE_SIZE } from '../../utils/constants'
 /*
 Category route
 */
@@ -186,7 +187,7 @@ export default class Category extends Component {
         }
     }
 
-    componentWillMount() {
+    UNSAFE_componentWillMount() {
         this.initColumns()
     }
 
@@ -235,7 +236,7 @@ export default class Category extends Component {
                     dataSource={parentId === '0' ? categories : subCategories}
                     columns={this.columns}
                     pagination={{
-                        defaultPageSize: 5,
+                        defaultPageSize: PAGE_SIZE,
                         showQuickJumper: true,
                     }}
                 />

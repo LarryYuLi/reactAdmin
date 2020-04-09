@@ -13,7 +13,7 @@ import storageUtils from '../../utils/storageUtils'
 login router component
 */
 
-const NormalLoginForm = ({ props }) => {
+const NormalLoginForm = (props) => {
     const onFinish = async values => {
         // console.log('Received values of form: ', values)
         const { username, password } = values

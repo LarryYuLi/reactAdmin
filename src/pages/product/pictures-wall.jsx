@@ -4,7 +4,7 @@ import { Upload, Modal, message } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 
 import { reqDeleteImg } from '../../api'
-import {BASE_IMG_URL} from '../../utils/constants'
+import { BASE_IMG_URL } from '../../utils/constants'
 /*
 Upload picture component
 */
@@ -15,7 +15,7 @@ function getBase64(file) {
     reader.readAsDataURL(file);
     reader.onload = () => resolve(reader.result);
     reader.onerror = error => reject(error);
-  });
+  })
 }
 
 export default class PicturesWall extends Component {
@@ -28,29 +28,26 @@ export default class PicturesWall extends Component {
     previewVisible: false,
     previewImage: '',
     fileList: [],
-  };
+  }
 
-  constructor(props) {
-    super(props)
-
+  initPW = imgs => {
     // update current images
     let fileList = []
-    const {imgs} = this.props
 
     if (imgs && imgs.length > 0) {
       fileList = imgs.map((img, index) => ({
-        uid: -index, 
+        uid: -index,
         name: img,
         status: 'done',
         url: BASE_IMG_URL + img
       }))
     }
 
-    this.state = {
+    this.setState({
       previewVisible: false,
       previewImage: '',
       fileList,
-    }
+    })
   }
 
   // get an array of all unloaded images
@@ -76,7 +73,6 @@ export default class PicturesWall extends Component {
   fileList: list of uploaded image files
   */
   handleChange = async ({ file, fileList }) => {
-    console.log('handle onchange', fileList, file)
 
     // modify information in file: name, url
     if (file.status === 'done') {
@@ -102,14 +98,22 @@ export default class PicturesWall extends Component {
     this.setState({ fileList })
   }
 
+  UNSAFE_componentWillReceiveProps(nextProps) {
+    const {imgs} = this.props
+    if (imgs !== nextProps.imgs) {
+      this.initPW(nextProps.imgs)
+    }
+  }
+
   render() {
     const { previewVisible, previewImage, fileList } = this.state;
+
     const uploadButton = (
       <div>
         <PlusOutlined />
         <div>Upload</div>
       </div>
-    );
+    )
     return (
       <div className="clearfix">
         <Upload

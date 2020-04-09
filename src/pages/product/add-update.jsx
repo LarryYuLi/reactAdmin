@@ -1,17 +1,18 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, useCallback } from 'react'
 import {
     Card,
     Form,
     Input,
     Cascader,
     Button,
+    message,
 } from 'antd'
 import { ArrowLeftOutlined } from '@ant-design/icons'
 
 import LinkButton from '../../components/link-button'
 import PicturesWall from './pictures-wall'
 import RichTextEditor from './rich-text-editor'
-import { reqCategories } from '../../api'
+import { reqCategories, reqAddOrUpdateProduct } from '../../api'
 
 const { Item } = Form
 const { TextArea } = Input
@@ -22,6 +23,9 @@ Add or update router of product
 const ProductAddUpdate = (props) => {
 
     const [options, setOptions] = useState([])
+    const [imgs, setImgs] = useState([])
+    const [detail, setDetail] = useState('')
+    const [product, setProduct] = useState({})
     const [isUpdate, setIsUpdate] = useState(false)
 
     const pw = useRef(null)
@@ -29,38 +33,8 @@ const ProductAddUpdate = (props) => {
 
     const [form] = Form.useForm()
 
-    let product = {}
-
     // category cascader 
     const categoryIds = []
-
-    let imgs = []
-    let detail = ''
-
-    useEffect(() => {
-        if (options.length === 0) { // avoid calling itself
-            getCategories('0')
-        }
-        return function cleanup() {
-            const data = props.location.state // to add, the data is undefined
-            // judge update or add 
-            setIsUpdate(!!data)
-            product = data || {}
-            if (isUpdate) {
-                const { pCategoryId, categoryId } = product
-                imgs = product.imgs
-                detail = product.detail
-                if (pCategoryId === '0') { // first level category
-                    categoryIds.push(categoryId)
-                } else { // first and second level categories
-                    categoryIds.push(pCategoryId)
-                    categoryIds.push(categoryId)
-                }
-
-            }
-        }
-
-    })
 
     // Item layout config
     const formItemLayout = {
@@ -68,10 +42,38 @@ const ProductAddUpdate = (props) => {
         wrapperCol: { span: 8 }, // wrapper width
     }
 
-    const onFinish = values => {
-        imgs = pw.current.getImgs()
-        detail = editor.current.getDetail()
-        console.log('submit', values, imgs, detail)
+    const onFinish = async values => {
+
+        // get product information
+        const { name, desc, price, categoryIds } = values
+        let pCategoryId, categoryId
+        if (categoryIds.length === 1) {
+            pCategoryId = '0'
+            categoryId = categoryIds[0]
+        } else {
+            pCategoryId = categoryIds[0]
+            categoryId = categoryIds[1]
+        }
+
+        const imgs = pw.current.getImgs()
+        const detail = editor.current.getDetail()
+        setImgs(imgs)
+        setDetail(detail)
+
+        const newProduct = { name, desc, price, imgs, detail, pCategoryId, categoryId }
+
+        if (isUpdate) { // if update, add _id into product
+            newProduct._id = product._id
+        }
+        // send request to add/update product
+        const result = await reqAddOrUpdateProduct(newProduct)
+
+        if (result.status === 0) {
+            message.success(`${isUpdate ? 'Update' : 'Add'} product successful`)
+            props.history.goBack()
+        } else {
+            message.error(`${isUpdate ? 'Update' : 'Add'} product failed`)
+        }
     }
 
     // generate options array, update options state
@@ -81,10 +83,12 @@ const ProductAddUpdate = (props) => {
             label: c.name,
             isLeaf: false,
         }))
+        const product = props.location.state
+        const isUpdate = !!product
 
         // if it needs to load second level category list
         if (isUpdate) {
-            const { pCategoryId, categoryId } = product
+            const { pCategoryId } = product
             if (pCategoryId !== '0') {
                 // get second level gate
                 const subCategories = await getCategories(pCategoryId)
@@ -138,6 +142,38 @@ const ProductAddUpdate = (props) => {
         setOptions([...options])
     }
 
+    const dispatchGetCategories = useCallback(getCategories, [])
+
+    useEffect(() => {
+        if (options.length === 0) { // avoid calling itself
+            dispatchGetCategories('0')
+        }
+        const data = props.location.state // to add, the data is undefined
+        // judge update or add 
+        setIsUpdate(!!data)
+        if (isUpdate) {
+            const product = data
+            setProduct(product)
+            form.setFieldsValue({
+                name: product.name,
+                desc: product.desc,
+                price: product.price,
+                categoryIds,
+            })
+            const { pCategoryId, categoryId } = product
+            // imgs = product.imgs
+            // detail = product.detail
+            setImgs(product.imgs)
+            setDetail(product.detail)
+            if (pCategoryId === '0') { // first level category
+                categoryIds.push(categoryId)
+            } else { // first and second level categories
+                categoryIds.push(pCategoryId)
+                categoryIds.push(categoryId)
+            }
+        }
+    }, [props, options, isUpdate, categoryIds, form, dispatchGetCategories])
+
     const title = (
         <span>
             <LinkButton onClick={props.history.goBack}>
@@ -154,12 +190,6 @@ const ProductAddUpdate = (props) => {
             <Form
                 {...formItemLayout}
                 form={form}
-                initialValues={{
-                    name: product.name,
-                    desc: product.desc,
-                    price: product.price,
-                    categoryIds
-                }}
                 onFinish={onFinish}
             >
                 <Item
@@ -202,7 +232,7 @@ const ProductAddUpdate = (props) => {
                         loadData={loadData}
                     />
                 </Item>
-                <Item label='Product pictures'>
+                <Item name='pw' label='Product pictures'>
                     <PicturesWall ref={pw} imgs={imgs} />
                 </Item>
                 <Item
@@ -210,7 +240,7 @@ const ProductAddUpdate = (props) => {
                     labelCol={{ span: 5 }}
                     wrapperCol={{ span: 20 }}
                 >
-                    <RichTextEditor ref={editor} detail={detail}/>
+                    <RichTextEditor ref={editor} detail={detail} />
                 </Item>
                 <Item>
                     <Button type='primary' htmlType="submit">Submit</Button>

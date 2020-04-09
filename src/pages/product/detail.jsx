@@ -66,11 +66,11 @@ export default class ProductDetail extends Component {
                 <List>
                     <Item className='item'>
                         <span className='left'>Product name:</span>
-                        <span>{name}}</span>
+                        <span>{name}</span>
                     </Item>
                     <Item className='item'>
                         <span className='left'>Product description:</span>
-                        <span>{desc}}</span>
+                        <span>{desc}</span>
                     </Item>
                     <Item className='item'>
                         <span className='left'>Product price:</span>

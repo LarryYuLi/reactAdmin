@@ -41,7 +41,7 @@ class Header extends Component {
         const path = this.props.location.pathname
         let title
         list.forEach(item => {
-            if (item.key === path) {
+            if (path.indexOf(item.key) === 0) {
                 title = item.title
             } else if (item.children) {
                 const cTitle = this.getTitle(item.children)
@@ -54,21 +54,21 @@ class Header extends Component {
     }
 
     // get title of current route 
-    getTitle1 = () => {
-        const path = this.props.location.pathname
-        let title
-        menuList.forEach(item => {
-            if (item.key === path) {
-                title = item.title
-            } else if (item.children) {
-                const cItem = item.children.find(cItem => cItem.key === path)
-                if (cItem) {
-                    title = cItem.title
-                }
-            }
-        })
-        return title
-    }
+    // getTitle1 = () => {
+    //     const path = this.props.location.pathname
+    //     let title
+    //     menuList.forEach(item => {
+    //         if (item.key === path) {
+    //             title = item.title
+    //         } else if (item.children) {
+    //             const cItem = item.children.find(cItem => path.indexOf(cItem.key) === 0)
+    //             if (cItem) {
+    //                 title = cItem.title
+    //             }
+    //         }
+    //     })
+    //     return title
+    // }
 
     // log out
     logout = () => {
@@ -88,7 +88,7 @@ class Header extends Component {
     }
 
     // unload component
-    componentWillMount () {
+    UNSAFE_componentWillMount () {
         // clear interval
         clearInterval(this.intervalId)
     }

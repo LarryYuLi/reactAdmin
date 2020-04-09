@@ -12,9 +12,6 @@ const BASE = '' // proxy in package.json
 // login
 export const reqLogin = (username, password) => ajax(BASE + '/login', { username, password }, 'POST')
 
-// add user
-export const reqAddUser = user => ajax(BASE + '/manage/user/add', user, 'POST')
-
 // get category list
 export const reqCategories = (parentId) => ajax(BASE + '/manage/category/list', {parentId})
 
@@ -42,6 +39,28 @@ export const reqSearchProducts = ({pageNum, pageSize, searchName, searchType}) =
 
 // delete image in update-add
 export const reqDeleteImg = (name) => ajax(BASE + '/manage/img/delete', {name}, 'POST')
+
+// add product information
+export const reqAddOrUpdateProduct = (product) => 
+    ajax(BASE + '/manage/product/' + (product._id ? 'update' : 'add'), product, 'POST')
+
+// get role list
+export const reqRoles = () => ajax(BASE + '/manage/role/list')
+
+// add role
+export const reqAddRole = (roleName) => ajax(BASE + '/manage/role/add', {roleName}, 'POST')
+
+// update role
+export const reqUpdateRole = (role) => ajax(BASE + '/manage/role/update', role, 'POST')
+
+// get user list
+export const reqUsers = () => ajax(BASE + '/manage/user/list')
+
+// delete user
+export const reqDeleteUser = (userId) => ajax(BASE + '/manage/user/delete', {userId}, 'POST')
+
+// add or update user
+export const reqAddOrUpdateUser = user => ajax(BASE + '/manage/user/' + (user._id ? 'update' : 'add'), user, 'POST')
 
 // json request api function
 export const reqWeather = (city) => {

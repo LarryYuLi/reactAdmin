@@ -4,6 +4,7 @@ import { Menu } from 'antd';
 
 import logo from '../../assets/images/logo.png'
 import menuList from "../../config/menuConfig"
+import memoryUtils from '../../utils/memoryUtils'
 import './index.less'
 
 const { SubMenu } = Menu;
@@ -12,86 +13,76 @@ Left navigation component
 */
 
 class LeftNav extends Component {
+
+    // whether current user has authroity for item
+    hasAuth = item => {
+        const {key, isPublic} = item
+        const menus = memoryUtils.user.role.menus
+        const username = memoryUtils.user.username
+        // 1. admin: full control, return true
+        // 2. if item is public, return true
+        // 3. current user: if the key is in menus
+        if (username === 'admin' || isPublic || menus.indexOf(key) !== -1) {
+            return true
+        } else if (item.children) { // 4. user has authority of sub-item
+            return !!item.children.find(child => menus.indexOf(child.key) !== -1)
+        }
+        return false
+    }
+
     /*
     generate array of tags from menu list
     map() + recursion
-    */ 
+    */
     getMenuNodes = (menuList) => {
         return menuList.map(item => {
-            /*
-            {
-                title: '', key: '', icon: '', children(optional): []
-            }
-
-            <Menu.Item key="/home">
-                <Link to='/home'>
-                    <PieChartOutlined />
-                    <span>Home</span>
-                </Link>
-            </Menu.Item>
-            <SubMenu
-                key="sub1"
-                title={
-                    <span>
-                        <MailOutlined />
-                        <span>Products</span>
-                    </span>
-                }
-            >
-                <Menu.Item key="/category">
-                    <Link to='/category'>
-                        <span>
-                            <MailOutlined />
-                            <span>Category</span>
-                        </span>
-                    </Link>
-                </Menu.Item>
-            </SubMenu>
-            */
-
-            if (!item.children) {
-                return (
-                    <Menu.Item key={item.key}>
-                        <Link to={item.key}>
-                            {item.icon}
-                            <span>{item.title}</span>
-                        </Link>
-                    </Menu.Item>
-                )
-            } else {
-                // current route path
-                const path = this.props.location.pathname
-                const exist = item.children.find(cItem => path.indexOf(cItem.key) === 0)
-                if (exist) {
-                    this.openKey = item.key
-                }
-                return (
-                    <SubMenu
-                        key={item.key}
-                        title={
-                            <span>
+            // show components according to user's authority
+            if (this.hasAuth(item)) {
+                if (!item.children) {
+                    return (
+                        <Menu.Item key={item.key}>
+                            <Link to={item.key}>
                                 {item.icon}
                                 <span>{item.title}</span>
-                            </span>
-                        }
-                    >
-                        {
-                            this.getMenuNodes(item.children)
-                        }
-                    </SubMenu>
-                )
+                            </Link>
+                        </Menu.Item>
+                    )
+                } else {
+                    // current route path
+                    const path = this.props.location.pathname
+                    const exist = item.children.find(cItem => path.indexOf(cItem.key) === 0)
+                    if (exist) {
+                        this.openKey = item.key
+                    }
+                    return (
+                        <SubMenu
+                            key={item.key}
+                            title={
+                                <span>
+                                    {item.icon}
+                                    <span>{item.title}</span>
+                                </span>
+                            }
+                        >
+                            {
+                                this.getMenuNodes(item.children)
+                            }
+                        </SubMenu>
+                    )
+                }
             }
+            return null
         })
     }
 
     // before first render, sychronized
-    componentWillMount() {
+    UNSAFE_componentWillMount() {
         // get menu nodes
         this.menuNodes = this.getMenuNodes(menuList)
     }
 
     render() {
-        
+
         // current route path
         let path = this.props.location.pathname
         if (path.indexOf('/product') === 0) {
@@ -109,7 +100,7 @@ class LeftNav extends Component {
                     mode="inline"
                     theme="dark"
                 >
-                    { this.menuNodes }
+                    {this.menuNodes}
                 </Menu>
             </div>
         )
