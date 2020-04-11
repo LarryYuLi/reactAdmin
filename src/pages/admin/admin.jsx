@@ -1,8 +1,8 @@
 import React, { Component } from 'react'
 import { Redirect, Route, Switch } from 'react-router-dom'
-import { Layout } from 'antd';
+import { Layout } from 'antd'
+import { connect } from 'react-redux'
 
-import memoryUtils from '../../utils/memoryUtils'
 import LeftNav from '../../components/left-nev'
 import Header from '../../components/header'
 import Home from '../home/home'
@@ -13,6 +13,7 @@ import User from '../user/user'
 import Bar from '../charts/bar'
 import Line from '../charts/line'
 import Pie from '../charts/pie'
+import NotFound from '../not-found/not-found'
 
 // import './admin.less'
 
@@ -23,10 +24,10 @@ admin router component
 */
 
 
-export default class Admin extends Component {
+class Admin extends Component {
     render() {
 
-        const user = memoryUtils.user
+        const user = this.props.user
         if (!user || !user._id) { // check status
             // jump to login page
             return <Redirect to='/login' />
@@ -41,6 +42,7 @@ export default class Admin extends Component {
                     <Header></Header>
                     <Content style={{ margin: 20, backgroundColor: '#fff' }}>
                         <Switch>
+                            <Redirect exact from='/' to='/home' />
                             <Route path='/home' component={Home} />
                             <Route path='/category' component={Category} />
                             <Route path='/product' component={Product} />
@@ -49,7 +51,7 @@ export default class Admin extends Component {
                             <Route path='/charts/bar' component={Bar} />
                             <Route path='/charts/line' component={Line} />
                             <Route path='/charts/pie' component={Pie} />
-                            <Redirect to='/home' />
+                            <Route component={NotFound} />
                         </Switch>
                     </Content>
                     <Footer style={{ textAlign: 'center', color: '#ccc' }}>Yu(Larry) Li ©2020 Created by React</Footer>
@@ -58,3 +60,8 @@ export default class Admin extends Component {
         )
     }
 }
+
+export default connect(
+    state => ({ user: state.user }),
+    {}
+)(Admin)

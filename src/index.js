@@ -1,14 +1,13 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
-// import 'antd/dist/antd.css'
+import { Provider } from 'react-redux'
 
-import App from './app'
-import memoryUtils from './utils/memoryUtils'
-import storageUtils from './utils/storageUtils'
-
-// get user from local memory
-const user = storageUtils.getUser()
-memoryUtils.user = user
+import store from './redux/store'
+import App from './App'
 
 // render App
-ReactDOM.render(<App />, document.getElementById('root'))
+ReactDOM.render((
+    <Provider store={store}>
+        <App />
+    </Provider>
+), document.getElementById('root'))

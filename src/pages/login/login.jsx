@@ -1,14 +1,12 @@
 import React, { Component } from 'react'
 import { Form, Input, Button } from 'antd';
-import { UserOutlined, LockOutlined } from '@ant-design/icons';
-import { message } from 'antd'
+import { UserOutlined, LockOutlined } from '@ant-design/icons'
 import { Redirect } from 'react-router-dom'
+import { connect } from 'react-redux'
 
 import './login.less'
 import logo from '../../assets/images/logo-login.png'
-import { reqLogin } from '../../api'
-import memoryUtils from '../../utils/memoryUtils'
-import storageUtils from '../../utils/storageUtils'
+import { login } from '../../redux/actions'
 /*
 login router component
 */
@@ -18,22 +16,8 @@ const NormalLoginForm = (props) => {
         // console.log('Received values of form: ', values)
         const { username, password } = values
 
-        // result => response.data => {status: 0, data: user} or {status: 1, msg: ''}
-        const result = await reqLogin(username, password) 
-        // console.log('Success: ', response.data)
-        
-        const user = result.data
-        memoryUtils.user = user // store user in memory
-        storageUtils.saveUser(user) // store user in local
-
-        if (result.status === 0) { // login success
-            message.success('Login success')
-            // console.log(self)
-            // Jump to management page, don't have to go back
-            props.history.replace('/')
-        } else { // login failed
-            message.error(result.msg)
-        }
+        // dispatch asynchronized action => ajax request, update state
+        props.login(username, password)
     }
 
     const onFinishFailed = error => {
@@ -114,15 +98,15 @@ const NormalLoginForm = (props) => {
     );
 };
 
-export default class Login extends Component {
-    
+class Login extends Component {
+
     render() {
         // if already logged in, jump to admin
-        const user = memoryUtils.user
+        const user = this.props.user
         if (user && user._id) {
-            return <Redirect to='/' />
+            return <Redirect to='/home' />
         }
-
+        
         return (
             <div className="login">
                 <header className="login-header">
@@ -130,6 +114,7 @@ export default class Login extends Component {
                     <h1>React: Content Management System</h1>
                 </header>
                 <section className="login-content">
+                    <div className={user.errorMsg ? 'error-msg show' : 'error-msg'}>Username or password is invalid</div>
                     <h2>Login</h2>
                     <NormalLoginForm {...this.props} />
                 </section>
@@ -137,3 +122,8 @@ export default class Login extends Component {
         )
     }
 }
+
+export default connect(
+    state => ({ user: state.user }),
+    { login }
+)(Login)

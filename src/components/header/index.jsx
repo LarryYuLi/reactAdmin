@@ -1,14 +1,14 @@
 import React, { Component } from 'react'
-import {withRouter} from 'react-router-dom'
+import { withRouter } from 'react-router-dom'
 import { Modal } from 'antd'
 import { ExclamationCircleOutlined } from '@ant-design/icons'
+import { connect } from 'react-redux'
 
 import LinkButton from '../link-button'
 import { formatDate } from '../../utils/dateUtils'
-import memoryUtils from '../../utils/memoryUtils'
-import {reqWeather} from '../../api'
-import menuList from '../../config/menuConfig'
-import storageUtils from '../../utils/storageUtils'
+import { reqWeather } from '../../api'
+// import menuList from '../../config/menuConfig'
+import { logout } from '../../redux/actions'
 import './index.less'
 /*
 Header component
@@ -37,21 +37,21 @@ class Header extends Component {
     }
 
     // get title of current route, recursive 
-    getTitle = (list) => {
-        const path = this.props.location.pathname
-        let title
-        list.forEach(item => {
-            if (path.indexOf(item.key) === 0) {
-                title = item.title
-            } else if (item.children) {
-                const cTitle = this.getTitle(item.children)
-                if (cTitle) {
-                    title = cTitle
-                }
-            }
-        })
-        return title
-    }
+    // getTitle = (list) => {
+    //     const path = this.props.location.pathname
+    //     let title
+    //     list.forEach(item => {
+    //         if (path.indexOf(item.key) === 0) {
+    //             title = item.title
+    //         } else if (item.children) {
+    //             const cTitle = this.getTitle(item.children)
+    //             if (cTitle) {
+    //                 title = cTitle
+    //             }
+    //         }
+    //     })
+    //     return title
+    // }
 
     // get title of current route 
     // getTitle1 = () => {
@@ -74,27 +74,22 @@ class Header extends Component {
     logout = () => {
         // confirmation dialog
         Modal.confirm({
-            title: 'Do you Want to Log Out?',
+            title: 'Do you want to log out?',
             icon: <ExclamationCircleOutlined />,
             onOk: () => {
-                // delete user data,
-                storageUtils.removeUser()
-                memoryUtils.user = {}
-                
-                // jump to login
-                this.props.history.replace('/login')
+                this.props.logout()
             },
-          })
+        })
     }
 
     // unload component
-    UNSAFE_componentWillMount () {
+    UNSAFE_componentWillMount() {
         // clear interval
         clearInterval(this.intervalId)
     }
 
     // after first render()
-    componentDidMount () {
+    componentDidMount() {
         this.getTime()
         this.getWeather('San Jose')
     }
@@ -103,10 +98,11 @@ class Header extends Component {
 
         const { currentTime, main, icon, city } = this.state
 
-        const { username } = memoryUtils.user
+        const { username } = this.props.user
 
-        const title = this.getTitle(menuList)
+        // const title = this.getTitle(menuList)
         // const title = this.getTitle1()
+        const title = this.props.headTitle
 
         return (
             <div className="header">
@@ -128,4 +124,7 @@ class Header extends Component {
     }
 }
 
-export default withRouter(Header)
+export default connect(
+    state => ({ headTitle: state.headTitle, user: state.user }),
+    { logout }
+)(withRouter(Header))

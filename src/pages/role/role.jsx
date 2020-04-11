@@ -6,19 +6,19 @@ import {
     Modal,
     message,
 } from 'antd'
+import { connect } from 'react-redux'
 
 import { PAGE_SIZE } from '../../utils/constants'
 import { reqRoles, reqAddRole, reqUpdateRole } from '../../api'
 import AddForm from './add-form'
 import AuthForm from './auth-form'
-import memoryUtils from '../../utils/memoryUtils'
 import { formatDate } from '../../utils/dateUtils'
-import storageUtils from '../../utils/storageUtils';
+import { logout } from '../../redux/actions'
 /*
 Role route
 */
 
-export default class Role extends Component {
+class Role extends Component {
 
     state = {
         roles: [], // role list
@@ -110,17 +110,15 @@ export default class Role extends Component {
 
         role.menus = this.menus
         role.auth_time = Date.now()
-        role.auth_name = memoryUtils.user.username
+        role.auth_name = this.props.user.username
 
         // request update role 
         const result = await reqUpdateRole(role)
         if (result.status === 0) {
             // if user update self authority, force log out
-            if (role._id === memoryUtils.user.role_id) {
-                memoryUtils.user = {}
-                storageUtils.removeUser()
+            if (role._id === this.props.user.role_id) {
+                this.props.logout()
                 message.success("Set current user's authorization successful, please login again")
-                this.props.history.replace('/login')
             } else {
                 message.success('Set authorization successful')
                 // this.getRoles()
@@ -213,3 +211,8 @@ export default class Role extends Component {
         )
     }
 }
+
+export default connect(
+    state => ({user: state.user}), 
+    {logout}
+)(Role)

@@ -1,10 +1,11 @@
 import React, { Component } from 'react'
 import { Link, withRouter } from 'react-router-dom'
-import { Menu } from 'antd';
+import { Menu } from 'antd'
+import { connect } from 'react-redux'
 
 import logo from '../../assets/images/logo.png'
 import menuList from "../../config/menuConfig"
-import memoryUtils from '../../utils/memoryUtils'
+import { setHeadTitle } from '../../redux/actions'
 import './index.less'
 
 const { SubMenu } = Menu;
@@ -16,9 +17,9 @@ class LeftNav extends Component {
 
     // whether current user has authroity for item
     hasAuth = item => {
-        const {key, isPublic} = item
-        const menus = memoryUtils.user.role.menus
-        const username = memoryUtils.user.username
+        const { key, isPublic } = item
+        const menus = this.props.user.role.menus
+        const username = this.props.user.username
         // 1. admin: full control, return true
         // 2. if item is public, return true
         // 3. current user: if the key is in menus
@@ -35,12 +36,18 @@ class LeftNav extends Component {
     map() + recursion
     */
     getMenuNodes = (menuList) => {
+        // current route path
+        const path = this.props.location.pathname
         return menuList.map(item => {
             // show components according to user's authority
             if (this.hasAuth(item)) {
                 if (!item.children) {
+                    // whether the item is current item
+                    if (item.key === path || path.indexOf(item.key) === 0) {
+                        this.props.setHeadTitle(item.title)
+                    }
                     return (
-                        <Menu.Item key={item.key}>
+                        <Menu.Item key={item.key} onClick={() => this.props.setHeadTitle(item.title)}>
                             <Link to={item.key}>
                                 {item.icon}
                                 <span>{item.title}</span>
@@ -48,8 +55,6 @@ class LeftNav extends Component {
                         </Menu.Item>
                     )
                 } else {
-                    // current route path
-                    const path = this.props.location.pathname
                     const exist = item.children.find(cItem => path.indexOf(cItem.key) === 0)
                     if (exist) {
                         this.openKey = item.key
@@ -111,4 +116,7 @@ class LeftNav extends Component {
 withRouter will pass updated match, location, and history props 
 to the wrapped component whenever it renders.
 */
-export default withRouter(LeftNav)
+export default connect(
+    state => ({user: state.user}),
+    { setHeadTitle }
+)(withRouter(LeftNav))
